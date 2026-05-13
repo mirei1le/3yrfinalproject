@@ -1,0 +1,79 @@
+[
+    {
+        "event_type": "created",
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\New Text Document.txt",
+        "destination_path": null,
+        "timestamp": "2026-03-31T23:21:42.844981+00:00",
+        "source": "monitor"
+    },
+    {
+        "event_type": "moved",
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\New Text Document.txt",
+        "destination_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\test1.txt",
+        "timestamp": "2026-03-31T23:21:45.329959+00:00",
+        "source": "monitor"
+    },
+    {
+        "event_type": "modified",
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\test1.txt",
+        "destination_path": null,
+        "timestamp": "2026-03-31T23:21:54.712195+00:00",
+        "source": "monitor"
+    },
+    {
+        "event_type": "modified",
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\test1.txt",
+        "destination_path": null,
+        "timestamp": "2026-03-31T23:21:55.287471+00:00",
+        "source": "monitor"
+    },
+    {
+        "event_type": "moved",
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\test1.txt",
+        "destination_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\.txt",
+        "timestamp": "2026-03-31T23:22:02.476159+00:00",
+        "source": "monitor"
+    },
+    {
+        "event_type": "modified",
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\.txt",
+        "destination_path": null,
+        "timestamp": "2026-03-31T23:22:02.483900+00:00",
+        "source": "monitor"
+    },
+    {
+        "event_type": "deleted",
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\.txt",
+        "destination_path": null,
+        "timestamp": "2026-03-31T23:22:04.233891+00:00",
+        "source": "monitor"
+    },
+    {
+        "event_type": "deleted",
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\test.txt",
+        "destination_path": null,
+        "timestamp": "2026-03-31T23:22:14.726732+00:00",
+        "source": "monitor"
+    },
+    {
+        "event_type": "created",
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Desktop\\Untitled Diagram.drawio.png",
+        "destination_path": null,
+        "timestamp": "2026-03-31T23:22:35.983207+00:00",
+        "source": "monitor"
+    },
+    {
+        "event_type": "modified",
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Desktop\\Untitled Diagram.drawio.png",
+        "destination_path": null,
+        "timestamp": "2026-03-31T23:22:35.989622+00:00",
+        "source": "monitor"
+    },
+    {
+        "event_type": "deleted",
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\Untitled Diagram.drawio.png",
+        "destination_path": null,
+        "timestamp": "2026-03-31T23:22:36.001545+00:00",
+        "source": "monitor"
+    }
+]

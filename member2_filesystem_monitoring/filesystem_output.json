@@ -1,0 +1,23 @@
+[
+    {
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\test.txt",
+        "created_time": "2026-03-31T22:57:27.102226+00:00",
+        "modified_time": "2026-03-31T22:57:27.102226+00:00",
+        "accessed_time": "2026-03-31T22:57:27.102226+00:00",
+        "source": "filesystem_scanner"
+    },
+    {
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\test.xlsx",
+        "created_time": "2026-03-31T22:57:36.708634+00:00",
+        "modified_time": "2026-03-31T22:57:36.781708+00:00",
+        "accessed_time": "2026-03-31T22:57:39.872298+00:00",
+        "source": "filesystem_scanner"
+    },
+    {
+        "file_path": "C:\\Users\\cheryl\\ForensicTestUser\\Documents\\Untitled Diagram.drawio.png",
+        "created_time": "2026-03-31T22:57:48.969308+00:00",
+        "modified_time": "2026-03-31T22:40:10.216535+00:00",
+        "accessed_time": "2026-03-31T22:57:49.748774+00:00",
+        "source": "filesystem_scanner"
+    }
+]
