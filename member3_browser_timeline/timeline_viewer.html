@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Unified Forensic Timeline</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<nav class="navbar">
+    <ul>
+        <li><a href="monitor_viewer.html">File Monitoring</a></li>
+        <li><a href="browser_viewer.html">Browser Artifacts</a></li>
+        <li><a href="timeline_viewer.html" class="active">Timeline</a></li>
+    </ul>
+</nav>
+
+<div class="container">
+
+    <div class="header">
+        <div class="header-icon">🕒</div>
+        <h1>Unified Forensic Timeline</h1>
+        <p class="subtitle">Upload your timeline CSV to view reconstructed user activity</p>
+    </div>
+
+    <!-- UPLOAD -->
+    <div class="upload-section">
+        <label id="fileLabel" class="file-label">
+            <span class="file-icon">📄</span>
+            <span class="file-text">Choose CSV File</span>
+            <span class="file-hint">or drag and drop here</span>
+            <input type="file" id="csvInput" accept=".csv" hidden>
+        </label>
+        <div id="fileName" class="file-name"></div>
+    </div>
+
+    <!-- STATS BAR -->
+    <div class="stats-bar" id="statsBar">
+        <div class="stat-item">
+            <span class="stat-value" id="totalEvents">0</span>
+            <span class="stat-label">Total Events</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" id="createdCount">0</span>
+            <span class="stat-label">Created</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" id="modifiedCount">0</span>
+            <span class="stat-label">Modified</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" id="deletedCount">0</span>
+            <span class="stat-label">Deleted</span>
+        </div>
+        <div class="stat-item">
+            <span class="stat-value" id="movedCount">0</span>
+            <span class="stat-label">Moved</span>
+        </div>
+    </div>
+
+    <!-- TABLE -->
+    <div class="table-container">
+        <div class="table-header">
+            <h2>Timeline Events</h2>
+        </div>
+
+        <table id="timelineTable">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Event Type</th>
+                    <th>Source Module</th>
+                    <th>Description</th>
+                    <th>Details</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <div class="empty-state" id="emptyState">
+            <div class="empty-icon">📂</div>
+            <p>No timeline loaded</p>
+            <span>Select a timeline CSV to begin</span>
+        </div>
+    </div>
+
+</div>
+
+<script>
+const csvInput = document.getElementById("csvInput");
+const fileLabel = document.getElementById("fileLabel");
+const fileName = document.getElementById("fileName");
+const table = document.getElementById("timelineTable");
+const tbody = table.querySelector("tbody");
+const emptyState = document.getElementById("emptyState");
+const statsBar = document.getElementById("statsBar");
+
+fileLabel.addEventListener("click", () => csvInput.click());
+
+fileLabel.addEventListener("dragover", e => { e.preventDefault(); fileLabel.classList.add("drag-over"); });
+fileLabel.addEventListener("dragleave", () => fileLabel.classList.remove("drag-over"));
+fileLabel.addEventListener("drop", e => {
+    e.preventDefault();
+    fileLabel.classList.remove("drag-over");
+    if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+});
+
+csvInput.addEventListener("change", e => {
+    if (e.target.files[0]) processFile(e.target.files[0]);
+});
+
+function processFile(file) {
+    fileName.textContent = file.name;
+    fileName.classList.add("visible");
+    const reader = new FileReader();
+    reader.onload = e => renderCSV(e.target.result);
+    reader.readAsText(file);
+}
+
+function parseCSVLine(line) {
+    const cols = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+            inQuotes = !inQuotes;
+        } else if (ch === "," && !inQuotes) {
+            cols.push(current.trim());
+            current = "";
+        } else {
+            current += ch;
+        }
+    }
+    cols.push(current.trim());
+    return cols;
+}
+
+function renderCSV(text) {
+    const lines = text.trim().split("\n").slice(1);
+    tbody.innerHTML = "";
+    emptyState.style.display = "none";
+
+    let total = 0, created = 0, modified = 0, deleted = 0, moved = 0;
+
+    lines.forEach(line => {
+        const cols = parseCSVLine(line);
+        if (cols.length < 3) return;
+
+        const [timestamp, event_type, source_module, description, details_json] = cols;
+        total++;
+
+        const typeLower = (event_type || "").toLowerCase();
+        if (typeLower.includes("created") || typeLower === "file_found") created++;
+        else if (typeLower.includes("modified")) modified++;
+        else if (typeLower.includes("deleted")) deleted++;
+        else if (typeLower.includes("moved") || typeLower.includes("rename")) moved++;
+
+        const row = document.createElement("tr");
+
+        const tdTs = document.createElement("td");
+        const tsSpan = document.createElement("span");
+        tsSpan.className = "timestamp";
+        tsSpan.textContent = timestamp || "—";
+        tdTs.appendChild(tsSpan);
+        row.appendChild(tdTs);
+
+        const tdType = document.createElement("td");
+        const typeSpan = document.createElement("span");
+        typeSpan.className = "source-tag";
+        typeSpan.textContent = event_type || "—";
+        tdType.appendChild(typeSpan);
+        row.appendChild(tdType);
+
+        const tdSrc = document.createElement("td");
+        const srcSpan = document.createElement("span");
+        srcSpan.className = "source-tag";
+        srcSpan.textContent = source_module || "—";
+        tdSrc.appendChild(srcSpan);
+        row.appendChild(tdSrc);
+
+        const tdDesc = document.createElement("td");
+        tdDesc.className = "path-cell";
+        tdDesc.textContent = description || "—";
+        row.appendChild(tdDesc);
+
+        const tdDetails = document.createElement("td");
+        tdDetails.className = "path-cell";
+        if (details_json) {
+            try {
+                const obj = JSON.parse(details_json);
+                const entries = Object.entries(obj)
+                    .filter(([k]) => k !== "description")
+                    .map(([k, v]) => v ? `${k}: ${v}` : null)
+                    .filter(Boolean);
+                tdDetails.textContent = entries.join(" | ") || "—";
+            } catch {
+                tdDetails.textContent = details_json;
+            }
+        } else {
+            tdDetails.textContent = "—";
+        }
+        row.appendChild(tdDetails);
+
+        tbody.appendChild(row);
+    });
+
+    document.getElementById("totalEvents").textContent = total;
+    document.getElementById("createdCount").textContent = created;
+    document.getElementById("modifiedCount").textContent = modified;
+    document.getElementById("deletedCount").textContent = deleted;
+    document.getElementById("movedCount").textContent = moved;
+}
+</script>
+
+</body>
+</html>

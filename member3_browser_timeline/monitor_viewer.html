@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Monitoring Events Viewer</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+ <nav class="navbar">
+    <ul>
+        <li><a href="monitor_viewer.html" class="active">File Monitoring</a></li>
+        <li><a href="browser_viewer.html">Browser Artifacts</a></li>
+        <li><a href="timeline_viewer.html">Timeline</a></li>
+    </ul>
+</nav>
+
+  <div class="container">
+    <header class="header">
+      <div class="header-icon">📊</div>
+      <h1>Real-Time Monitoring Events</h1>
+      <p class="subtitle">Upload a <code>upload your monitor output</code> file to visualise events</p>
+    </header>
+
+    <div class="upload-section">
+      <label for="fileInput" class="file-label">
+        <span class="file-icon">📁</span>
+        <span class="file-text">Choose JSON File</span>
+        <span class="file-hint">or drag and drop here</span>
+      </label>
+      <input type="file" id="fileInput" accept=".json" hidden>
+      <div class="file-name" id="fileName"></div>
+    </div>
+
+    <div class="stats-bar" id="statsBar">
+      <div class="stat-item">
+        <span class="stat-value" id="totalEvents">0</span>
+        <span class="stat-label">Total Events</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="createdCount">0</span>
+        <span class="stat-label">Created</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="modifiedCount">0</span>
+        <span class="stat-label">Modified</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="deletedCount">0</span>
+        <span class="stat-label">Deleted</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-value" id="movedCount">0</span>
+        <span class="stat-label">Moved</span>
+      </div>
+    </div>
+
+    <div class="table-container" id="tableContainer">
+      <div class="table-header">
+        <h2>Event Log</h2>
+        <div class="search-box">
+          <input type="text" id="searchInput" placeholder="Search events...">
+        </div>
+      </div>
+      
+      <table id="eventsTable">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Event Type</th>
+            <th>File Path</th>
+            <th>Destination</th>
+            <th>Source</th>
+          </tr>
+        </thead>
+        <tbody id="eventsBody"></tbody>
+      </table>
+
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">📋</div>
+        <p>No events loaded yet</p>
+        <span>Upload a JSON file to get started</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const fileLabel = document.querySelector('.file-label');
+    const fileName = document.getElementById('fileName');
+    const tbody = document.getElementById('eventsBody');
+    const emptyState = document.getElementById('emptyState');
+    const tableContainer = document.getElementById('tableContainer');
+    const searchInput = document.getElementById('searchInput');
+    const statsBar = document.getElementById('statsBar');
+
+    let allData = [];
+
+    // Drag and drop functionality
+    fileLabel.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      fileLabel.classList.add('drag-over');
+    });
+
+    fileLabel.addEventListener('dragleave', () => {
+      fileLabel.classList.remove('drag-over');
+    });
+
+    fileLabel.addEventListener('drop', (e) => {
+      e.preventDefault();
+      fileLabel.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file && file.name.endsWith('.json')) {
+        processFile(file);
+      }
+    });
+
+    fileLabel.addEventListener('click', () => fileInput.click());
+
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) processFile(file);
+    });
+
+    function processFile(file) {
+      fileName.textContent = file.name;
+      fileName.classList.add('visible');
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          allData = JSON.parse(event.target.result);
+          renderTable(allData);
+          updateStats(allData);
+          emptyState.style.display = 'none';
+          document.querySelector('table').style.display = 'table';
+          statsBar.classList.add('visible');
+        } catch (err) {
+          alert('Invalid JSON file');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function renderTable(data) {
+      tbody.innerHTML = '';
+      data.forEach(record => {
+        const row = document.createElement('tr');
+        const eventType = (record.event_type || '').toLowerCase();
+        row.className = `event-${eventType}`;
+        row.innerHTML = `
+          <td><span class="timestamp">${formatTimestamp(record.timestamp)}</span></td>
+          <td><span class="badge badge-${eventType}">${record.event_type || 'N/A'}</span></td>
+          <td class="path-cell" title="${record.file_path || ''}">${truncatePath(record.file_path)}</td>
+          <td class="path-cell" title="${record.destination_path || ''}">${truncatePath(record.destination_path) || '—'}</td>
+          <td><span class="source-tag">${record.source || 'N/A'}</span></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function formatTimestamp(ts) {
+      if (!ts) return 'N/A';
+      const date = new Date(ts);
+      return date.toLocaleString();
+    }
+
+    function truncatePath(path) {
+      if (!path) return '';
+      if (path.length > 50) {
+        return '...' + path.slice(-47);
+      }
+      return path;
+    }
+
+    function updateStats(data) {
+      document.getElementById('totalEvents').textContent = data.length;
+      document.getElementById('createdCount').textContent = data.filter(d => d.event_type?.toLowerCase() === 'created').length;
+      document.getElementById('modifiedCount').textContent = data.filter(d => d.event_type?.toLowerCase() === 'modified').length;
+      document.getElementById('deletedCount').textContent = data.filter(d => d.event_type?.toLowerCase() === 'deleted').length;
+      document.getElementById('movedCount').textContent = data.filter(d => d.event_type?.toLowerCase() === 'moved').length;
+    }
+
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.toLowerCase();
+      const filtered = allData.filter(record => 
+        Object.values(record).some(val => 
+          String(val).toLowerCase().includes(query)
+        )
+      );
+      renderTable(filtered);
+    });
+  </script>
+</body>
+</html>

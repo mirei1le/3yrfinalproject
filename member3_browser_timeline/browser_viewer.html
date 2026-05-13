@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browser History Viewer</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+<nav class="navbar">
+    <ul>
+        <li><a href="monitor_viewer.html">File Monitoring</a></li>
+        <li><a href="browser_viewer.html" class="active">Browser Artifacts</a></li>
+        <li><a href="timeline_viewer.html">Timeline</a></li>
+    </ul>
+</nav>
+<div class="container">
+
+<header class="header">
+    <div class="header-icon">🌐</div>
+    <h1>Browser Artifact Viewer</h1>
+    <p class="subtitle">Upload <code>upload your browser events</code> to view browsing activity</p>
+</header>
+
+<div class="upload-section">
+    <label for="fileInput" class="file-label">
+        <span class="file-icon">📁</span>
+        <span class="file-text">Choose JSON File</span>
+        <span class="file-hint">or drag and drop here</span>
+    </label>
+    <input type="file" id="fileInput" accept=".json" hidden>
+    <div class="file-name" id="fileName"></div>
+</div>
+
+<div class="stats-bar" id="statsBar">
+    <div class="stat-item">
+        <span class="stat-value" id="totalEvents">0</span>
+        <span class="stat-label">Total Visits</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-value" id="uniqueUrls">0</span>
+        <span class="stat-label">Unique URLs</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-value" id="topVisits">0</span>
+        <span class="stat-label">Max Visit Count</span>
+    </div>
+</div>
+
+<div class="table-container" id="tableContainer">
+    <div class="table-header">
+        <h2>Browser History Log</h2>
+        <div class="search-box">
+            <input type="text" id="searchInput" placeholder="Search URL or title...">
+        </div>
+    </div>
+
+    <table id="browserTable">
+        <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>URL</th>
+            <th>Title</th>
+            <th>Visits</th>
+            <th>Typed</th>
+            <th>Source</th>
+        </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🌐</div>
+        <p>No browser data loaded</p>
+        <span>Upload a JSON file to begin</span>
+    </div>
+</div>
+
+</div>
+
+<script>
+const fileInput = document.getElementById('fileInput');
+const fileLabel = document.querySelector('.file-label');
+const fileName = document.getElementById('fileName');
+const tbody = document.getElementById('tableBody');
+const emptyState = document.getElementById('emptyState');
+const statsBar = document.getElementById('statsBar');
+const searchInput = document.getElementById('searchInput');
+let allData = [];
+
+// Drag & drop handlers
+fileLabel.addEventListener('dragover', e => {
+    e.preventDefault();
+    fileLabel.classList.add('drag-over');
+});
+fileLabel.addEventListener('dragleave', () => fileLabel.classList.remove('drag-over'));
+fileLabel.addEventListener('drop', e => {
+    e.preventDefault();
+    fileLabel.classList.remove('drag-over');
+    if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+});
+
+fileLabel.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => processFile(e.target.files[0]));
+
+function processFile(file) {
+    fileName.textContent = file.name;
+    fileName.classList.add('visible');
+
+    const reader = new FileReader();
+    reader.onload = e => {
+        try {
+            allData = JSON.parse(e.target.result);
+            renderTable(allData);
+            updateStats(allData);
+
+            emptyState.style.display = 'none';
+            document.querySelector('table').style.display = 'table';
+            statsBar.classList.add('visible');
+        } catch {
+            alert("Invalid JSON file");
+        }
+    };
+    reader.readAsText(file);
+}
+
+function renderTable(data) {
+    tbody.innerHTML = '';
+
+    data.forEach(item => {
+        const row = document.createElement('tr');
+
+        row.innerHTML = `
+            <td><span class="timestamp">${formatTimestamp(item.timestamp)}</span></td>
+            <td class="path-cell">${item.url || "N/A"}</td>
+            <td>${item.title || "N/A"}</td>
+            <td>${item.visit_count || 0}</td>
+            <td>${item.typed_count || 0}</td>
+            <td><span class="source-tag">${item.source || "browser"}</span></td>
+        `;
+
+        tbody.appendChild(row);
+    });
+}
+
+function updateStats(data) {
+    document.getElementById('totalEvents').textContent = data.length;
+
+    const urls = new Set(data.map(d => d.url));
+    document.getElementById('uniqueUrls').textContent = urls.size;
+
+    const topVisit = Math.max(...data.map(d => d.visit_count || 0));
+    document.getElementById('topVisits').textContent = topVisit;
+}
+
+function formatTimestamp(ts) {
+    if (!ts) return "N/A";
+    return new Date(ts).toLocaleString();
+}
+
+searchInput.addEventListener('input', e => {
+    const query = e.target.value.toLowerCase();
+    const filtered = allData.filter(item =>
+        item.url.toLowerCase().includes(query) ||
+        (item.title || "").toLowerCase().includes(query)
+    );
+    renderTable(filtered);
+});
+</script>
+
+</body>
+</html>
